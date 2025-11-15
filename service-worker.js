@@ -1,15 +1,20 @@
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open("fgold-cache").then((cache) => {
-      return cache.addAll(["/radyoPlayer/index.html", "/radyoPlayer/icon-512.png", "/radyoPlayer/manifest.json"]);
-    })
-  );
+    e.waitUntil(
+        caches.open("fgold-cache").then((cache) => {
+            return cache.addAll([
+                "/radyoPlayer/",
+                "/radyoPlayer/index.html",
+                "/radyoPlayer/icon-512.png",
+                "/radyoPlayer/manifest.json"
+            ]);
+        })
+    );
 });
 
 self.addEventListener("fetch", (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
-  );
+    e.respondWith(
+        caches.match(e.request).then((response) => {
+            return response || fetch(e.request);
+        })
+    );
 });
