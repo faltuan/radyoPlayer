@@ -1,7 +1,7 @@
 {
   "name": "Radyo Online",
   "short_name": "Radyo Online",
-  "start_url": "faltuan.github.io/radyoPlayer/index.html",
+  "start_url": "faltuan.github.io/index.html",
   "scope": "/radyoPlayer/",
   "display": "standalone",
   "background_color": "#121212",
