@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radyo - Online Mod</title>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- HLS.js kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Giriş Sayfası */
+        .login-box {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            margin: 100px auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .login-box h1 {
+            color: #4cc9f0;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background-color: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .ban-message {
+            background-color: rgba(233, 69, 96, 0.3);
+            color: #ff6b81;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 18px;
+            border: 1px solid rgba(233, 69, 96, 0.5);
+        }
+
+        .warning {
+            color: #ff9a3c;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0f3460;
+            color: white;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: #4cc9f0;
+            color: #16213e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #7ee6fd;
+            transform: translateY(-2px);
+        }
+
+        .channel-btn {
+            background-color: #4cc9f0;
+            color: #16213e;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .channel-btn:hover {
+            background-color: #7ee6fd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .info {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #a9a9a9;
+        }
+
+        /* Radyo Sayfası */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #2a2a5a;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #4cc9f0;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .listeners-info {
+            background-color: #3a86ff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            main {
+                grid-template-columns: 2fr;
+            }
+
+            .channels-list {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #16213e;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+            gap: 20px;
+        }
+
+        .now-playing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .now-playing h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #4cc9f0;
+        }
+
+        #current-channel {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+
+            padding: 8px 20px;
+            background-color: rgba(76, 201, 240, 0.1);
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+
+        .volume-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+
+        }
+
+        .volume-control label {
+            margin-bottom: 8px;
+            color: #4cc9f0;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #0f3460;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #ff6b81;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 6px;
+        }
+
+        .control-btn {
+            background-color: #0f3460;
+            color: #4cc9f0;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:hover {
+            background-color: #1a4980;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        #play-button {
+            background-color: #e94560;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(233, 69, 96, 0.4);
+        }
+
+        #play-button:hover {
+            background-color: #ff6b81;
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(233, 69, 96, 0.5);
+        }
+
+        #play-button:active {
+            transform: scale(0.95);
+        }
+
+        #play-button i {
+            font-size: 28px;
+        }
+
+        .channel-selector {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .channel-selector h3 {
+            margin-bottom: 15px;
+            color: #e94560;
+        }
+
+        #channel-select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #0f3460;
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .channels-list {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .channels-list h3 {
+            margin-bottom: 15px;
+            color: #3a86ff;
+        }
+
+        .channel-grid {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* Mobil cihazlar için 2 kolonluk grid düzeni */
+        @media (max-width: 767px) {
+            .channel-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .channel-box {
+                height: 100px;
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+
+        /* Kanal kutuları */
+        .channel-box {
+            background-color: #0f3460;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            word-break: break-word;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .channel-box:hover {
+            background-color: #225892;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .channel-box.active {
+            background-color: #4cc9f0;
+            color: #16213e;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
+        }
+
+        .delete-channel {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: #e94560;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-channel:hover {
+            background-color: rgba(233, 69, 96, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Admin için tıklanabilir kanal kutularında imleç göster */
+        .admin-clickable {
+            cursor: pointer;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px 0;
+            border-top: 1px solid #2a2a5a;
+            color: #a9a9a9;
+            font-size: 14px;
+        }
+
+        .admin-badge {
+            background-color: #e94560;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .guest-badge {
+            background-color: #ffaa00;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .admin-info {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .guest-info {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .note {
+            color: #4cc9f0;
+            margin-top: 5px;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* Admin menü ve modal stilleri */
+        .admin-menu {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: #16213e;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            z-index: 999;
+            overflow: hidden;
+            width: 220px;
+            transition: all 0.3s ease;
+            transform: translateX(250px);
+            opacity: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-menu.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .admin-menu-btn {
+            background-color: #4cc9f0;
+            color: #16213e;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .admin-menu-btn:hover {
+            background-color: #7ee6fd;
+            transform: scale(1.1);
+        }
+
+        .admin-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-menu li {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-menu li:last-child {
+            border-bottom: none;
+        }
+
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        .admin-menu a:hover {
+            background-color: #225892;
+        }
+
+        .admin-menu a i {
+            margin-right: 12px;
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .admin-menu a.logout {
+            background-color: rgba(233, 69, 96, 0.2);
+            color: #ff6b81;
+        }
+
+        .admin-menu a.logout:hover {
+            background-color: rgba(233, 69, 96, 0.3);
+        }
+
+        /* Modal stilleri */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #16213e;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2a2a5a;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            color: #4cc9f0;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-submit {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #2a2a5a;
+        }
+
+        .admin-table th {
+            background-color: #0f3460;
+            color: white;
+            font-weight: bold;
+        }
+
+        .admin-table tr:hover {
+            background-color: #1a2b4f;
+        }
+
+        .admin-table .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .admin-table .edit-btn,
+        .admin-table .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+
+        .admin-table .edit-btn {
+            color: #4cc9f0;
+            background-color: rgba(76, 201, 240, 0.1);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-table .delete-btn {
+            color: #e94560;
+            background-color: rgba(233, 69, 96, 0.1);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-table .edit-btn:hover {
+            background-color: rgba(76, 201, 240, 0.2);
+            transform: scale(1.1);
+        }
+
+        .admin-table .delete-btn:hover {
+            background-color: rgba(233, 69, 96, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Add Channel Button */
+        .add-channel-btn {
+            background-color: #3a86ff;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .add-channel-btn:hover {
+            background-color: #4d9bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Offline mod stilleri */
+        .offline-badge {
+            background-color: #e94560;
+            color: white;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: normal;
+            vertical-align: middle;
+        }
+
+        .offline-info {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .alternative-options {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .offline-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #16213e;
+            color: #4cc9f0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid #4cc9f0;
+            transition: all 0.3s ease;
+        }
+
+        .offline-btn i {
+            margin-right: 8px;
+        }
+
+        .offline-btn:hover {
+            background-color: #0f3460;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-container {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 470px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .login-btn {
+            background-color: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+    <!-- Add Channel Modal -->
+    <div id="add-channel-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Kanal Ekle</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="channel-name">Kanal İsmi:</label>
+                <input type="text" id="channel-name" placeholder="Kanal adını girin">
+            </div>
+            <div class="form-group">
+                <label for="channel-url">Kanal Linki:</label>
+                <input type="text" id="channel-url" placeholder="https://...">
+            </div>
+            <div class="form-submit">
+                <button id="add-channel-btn" class="btn">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Online Radyo</h1>
+            <div class="status-bar">
+                <button class="add-channel-btn"><i class="fas fa-plus"></i>Ekle</button>
+                <button id="edit-channels-btn" class="channel-btn"><i class="fas fa-edit"></i> Düzenle</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="player-container">
+                <div class="now-playing">
+                    <h2>Şu an çalıyor:</h2>
+                    <div id="current-channel"></div>
+                </div>
+
+                <div class="volume-control">
+                    <label for="volume">Ses:</label>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7">
+                </div>
+
+                <div class="player-controls">
+                    <audio id="radio-player"></audio>
+                    <button id="prev-button" class="control-btn">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="play-button" class="btn">
+                        <i class="fas fa-play play-icon"></i>
+                        <i class="fas fa-pause pause-icon" style="display:none;"></i>
+                    </button>
+                    <button id="next-button" class="control-btn">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="channels-list">
+                <h3>Mevcut Kanallar</h3>
+
+                <ul class="channel-grid" id="offline-channels">
+                    <!-- Kanallar JavaScript ile doldurulacak -->
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2025 Radyo</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // DOM elementleri
+            const radioPlayer = document.getElementById('radio-player');
+            const playButton = document.getElementById('play-button');
+            const prevButton = document.getElementById('prev-button');
+            const nextButton = document.getElementById('next-button');
+            const playIcon = document.querySelector('.play-icon');
+            const pauseIcon = document.querySelector('.pause-icon');
+            const volumeControl = document.getElementById('volume');
+            const currentChannelDisplay = document.getElementById('current-channel');
+            const channelGrid = document.getElementById('offline-channels');
+
+            // Modal elements
+            const addChannelModal = document.getElementById('add-channel-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const addChannelBtn = document.getElementById('add-channel-btn');
+            const channelNameInput = document.getElementById('channel-name');
+            const channelUrlInput = document.getElementById('channel-url');
+            const addChannelButton = document.querySelector('.add-channel-btn');
+
+            // Edit/Done button functionality
+            const editChannelsBtn = document.getElementById('edit-channels-btn');
+            let isEditing = false;
+
+            console.log("Online mod başlatılıyor...");
+            console.log("Radio player:", radioPlayer);
+            console.log("Play button:", playButton);
+            console.log("Prev button:", prevButton);
+            console.log("Next button:", nextButton);
+            console.log("Channel grid:", channelGrid);
+
+            // HLS.js nesnesi
+            let hls = null;
+
+            // Load channels from localStorage or use default
+            let channels = JSON.parse(localStorage.getItem('radioChannels')) || {
+                "NUMBER1 90LAR": "https://n10101m.mediatriple.net/numberone90s",
+                "NUMBER1 TÜRK": "https://n10101m.mediatriple.net/numberoneturk ",
+                "Efsane 4LÜ": "https://moondigitaledge.radyotvonline.net/efsane4lu/playlist.m3u8",
+                "Radyo 7": "https://moondigitaledge.radyotvonline.net/radyo7/playlist.m3u8",
+                "Turkuvaz Radyo": "https://trkvz-radyolar.ercdn.net/radyoturkuvaz/playlist.m3u8",
+                "Maziden 1 Demet": "https://moondigitaledge.radyotvonline.net/mazidenbirdemet/playlist.m3u8",
+                "POP HOME": "https://moondigitaledge.radyotvonline.net/pophome/playlist.m3u8",
+                "TRT TÜRKÜ": "https://rd-trtturku.medya.trt.com.tr/master_128.m3u8",
+                "Türkülerle Türkiye": "https://moondigitaledge.radyotvonline.net/turkulerleturkiye/playlist.m3u8",
+                "DOKSANLAR FM": "https://moondigitaledge.radyotvonline.net/90lar/playlist.m3u8",
+                "JoyTürk": "https://playerservices.streamtheworld.com/api/livestream-redirect/JOY_TURK128AAC.aac?/;stream.mp3",
+                "Kafa Radyo": "https://moondigitaledge2.radyotvonline.net/kafaradyo/playlist.m3u8",
+                "ADANA RADYO DEVA": "https://ssl123.ozelip.com/8108/stream",
+                "AFŞİN FM": "https://radyo.arkacadde.org/4646/afsinradyo.mp3 ",
+                "AFYON GÜN FM": "https://ssl120.radyotelekom.com.tr/8130/stream",
+                "EGM FM": "https://m.egm.gov.tr:8093/; ",
+                "BARTIN FM": "https://radyo.yayin.com.tr:5918/;",
+                "DAMAR FM": "https://yayin.damarfm.com:8080/;",
+                "GÖZDE FM": "https://gozdefm.80.yayin.com.tr/; ",
+                "GÜL FM": "https://yayin2.canliyayin.org:10989/;stream.mp3",
+                "GURBET FM": "https://radyo1.radyo-dinle.tc:7009/;",
+                "ERKAM FM": "https://api-tv5.yayin.com.tr:8002/mp3?/;stream.mp3",
+                "DOLUNAY FM": "https://yayin2.canliyayin.org:10955/stream",
+                "ÇAĞRI FM": "https://sssx.radyosfer.com/9398/stream",
+                "NEBİ FM": "https://anadolu.liderhost.com.tr:10901/;",
+                "BAYRAM FM": "https://sslyayin.netyayin.net/3442/stream",
+                "MEAL FM": "http://37.247.98.8/stream/33/;",
+                "KURAN RADYO": "https://anadolu.liderhost.com.tr:10995/;",
+                "BERAT FM": "https://sslyayin.netyayin.net/3442/stream",
+                "BİZİM FM": "https://ip132.ozelip.com:7017/stream",
+                "DAVET FM": "https://stream.radiojar.com/ggu0fd6qu2wtv?",
+                "FURKAN FM": "https://radyo.yayindakiler.com:6191/stream?/;stream.mp3",
+                "GONCA FM": "https://sslyayin.netyayin.net/8912/stream/;stream.mp3",
+                "HAK FM": "https://sslyayin.netyayin.net/3442/stream",
+                "LALEGÜL FM": "https://icecast.netmedya.net/lalegulfm",
+                "MORAL FM": "https://stream-51.zeno.fm/0cfiqwdkobavv?zs=RptTdDEHQ2Wej62cArILjQ/;stream.mp3",
+            };
+
+            // Kanal indeksi
+            let currentChannelIndex = 0;
+            let channelNames = Object.keys(channels);
+
+            // İlk yüklenen kanal
+            let currentChannel = channelNames[currentChannelIndex];
+            let currentUrl = channels[currentChannel];
+
+            // İlk ses seviyesini ayarla
+            radioPlayer.volume = volumeControl.value;
+
+            // Service Workerr yükle
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker.register("service-worker.js");
+                });
+            }
+
+            // Kanalları yükle
+            function loadChannels() {
+                // Eğer channelGrid bulunamazsa oluştur
+                if (!channelGrid) {
+                    console.error("Kanal grid elemanı bulunamadı!");
+                    return;
+                }
+
+                console.log("Kanallar yükleniyor...");
+                channelGrid.innerHTML = '';
+
+                channelNames.forEach((channel, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'channel-box';
+                    if (index === currentChannelIndex) {
+                        li.classList.add('active');
+                    }
+                    li.setAttribute('data-index', index);
+                    li.textContent = channel;
+
+                    // Delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-channel';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.title = 'Kanalı Sil';
+                    deleteBtn.addEventListener('click', function (e) {
+                        e.stopPropagation(); // Click on delete button shouldn't trigger channel selection
+                        deleteChannel(channel);
+                    });
+
+                    li.appendChild(deleteBtn);
+
+                    // Initially hide the delete button unless in editing mode
+                    if (!isEditing) {
+                        deleteBtn.style.display = 'none';
+                    } else {
+                        deleteBtn.style.display = 'block';
+                    }
+
+                    li.addEventListener('click', function () {
+                        console.log("Kanal seçildi:", channel);
+                        changeChannel(index);
+                    });
+
+                    channelGrid.appendChild(li);
+                });
+
+                console.log("Kanallar yüklendi, toplam:", channelNames.length);
+            }
+
+            // Kanal silme fonksiyonu
+            function deleteChannel(channelName) {
+                if (confirm(channelName + " kanalını silmek istediğinizden emin misiniz?")) {
+                    delete channels[channelName];
+                    channelNames = Object.keys(channels);
+
+                    // Update localStorage
+                    localStorage.setItem('radioChannels', JSON.stringify(channels));
+
+                    // Reload channels
+                    loadChannels();
+
+                    // If deleted channel was the current one, change to first channel
+                    if (currentChannel === channelName && channelNames.length > 0) {
+                        currentChannelIndex = 0;
+                        currentChannel = channelNames[currentChannelIndex];
+                        currentUrl = channels[currentChannel];
+                        currentChannelDisplay.textContent = currentChannel;
+                    } else if (channelNames.length === 0) {
+                        // If no channels left, show empty state
+                        currentChannelIndex = -1;
+                        currentChannel = '';
+                        currentUrl = '';
+                        currentChannelDisplay.textContent = 'Kanal yok';
+                    } else {
+                        // Update current channel index
+                        currentChannelIndex = channelNames.indexOf(currentChannel);
+                        if (currentChannelIndex === -1 && channelNames.length > 0) {
+                            currentChannelIndex = 0;
+                            currentChannel = channelNames[currentChannelIndex];
+                            currentUrl = channels[currentChannel];
+                        }
+                        currentChannelDisplay.textContent = currentChannel;
+                    }
+                }
+            }
+
+            // Kanal ekleme fonksiyonu
+            function addChannel(name, url) {
+                if (!name || !url) {
+                    alert('Lütfen kanal adı ve linki girin.');
+                    return;
+                }
+
+                if (channels[name]) {
+                    alert('Bu isimde bir kanal zaten var.');
+                    return;
+                }
+
+                // Yeni kanalı listenin başına ekle
+                const newChannels = {};
+                newChannels[name] = url;
+
+                // Eski kanalları yeni nesneye ekle
+                for (const [key, value] of Object.entries(channels)) {
+                    newChannels[key] = value;
+                }
+
+                channels = newChannels;
+                channelNames = Object.keys(channels);
+
+                // Update localStorage
+                localStorage.setItem('radioChannels', JSON.stringify(channels));
+
+                // Reload channels
+                loadChannels();
+
+                // Close modal and clear inputs
+                addChannelModal.classList.remove('active');
+                channelNameInput.value = '';
+                channelUrlInput.value = '';
+            }
+
+            // Kanal değiştirme fonksiyonu
+            function changeChannel(index) {
+                console.log("Kanal değiştiriliyor, yeni index:", index);
+
+                // Tüm kanalların aktif sınıfını kaldır
+                document.querySelectorAll('.channel-box').forEach(box => {
+                    box.classList.remove('active');
+                });
+
+                // Yeni kanalı aktif yap
+                const activeBox = document.querySelector(`.channel-box[data-index="${index}"]`);
+                if (activeBox) {
+                    activeBox.classList.add('active');
+                }
+
+                // Kanal bilgisini güncelle
+                currentChannelIndex = index;
+                currentChannel = channelNames[index];
+                currentUrl = channels[currentChannel];
+                currentChannelDisplay.textContent = currentChannel;
+
+                // HLS.js ile başlatılmış bir ses varsa, önce onu temizle
+                if (hls !== null && hls.media) {
+                    hls.destroy();
+                    hls = null;
+                }
+
+                const isHLS = currentUrl.includes('.m3u8');
+
+                if (isHLS && Hls.isSupported()) {
+                    // M3U8 formatı için HLS.js kullan
+                    hls = new Hls();
+                    hls.loadSource(currentUrl);
+                    hls.attachMedia(radioPlayer);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        playRadio();
+                    });
+
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        console.error("HLS hatası:", data);
+                        if (data.fatal) {
+                            switch (data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    // Ağ hatası durumunda yeniden deneme
+                                    console.log("Ağ hatası, yeniden yükleniyor...");
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    // Medya hatası durumunda yeniden yükleme
+                                    console.log("Medya hatası, yeniden yükleniyor...");
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    // Kurtarılamaz hata
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+                } else {
+                    // Normal ses akışı için standart audio element kullan
+                    radioPlayer.src = currentUrl;
+                    playRadio();
+                }
+
+                // MediaSession metadata'sını güncelle
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: currentChannel,
+                        artist: 'Radyo - Online',
+                        album: 'Yerel Yayın'
+                    });
+                }
+            }
+
+            // Radyoyu çal
+            function playRadio() {
+                radioPlayer.play().catch(err => {
+                    console.error('Otomatik oynatma hatası:', err);
+                });
+
+                pauseIcon.style.display = 'inline';
+                playIcon.style.display = 'none';
+            }
+
+            // Radyoyu duraklat
+            function pauseRadio() {
+                radioPlayer.pause();
+                pauseIcon.style.display = 'none';
+                playIcon.style.display = 'inline';
+            }
+
+            // Modal açma/kapama
+            addChannelButton.addEventListener('click', function () {
+                addChannelModal.classList.add('active');
+            });
+
+            closeModal.addEventListener('click', function () {
+                addChannelModal.classList.remove('active');
+            });
+
+            // Modal dışına tıklanınca kapat
+            window.addEventListener('click', function (event) {
+                if (event.target === addChannelModal) {
+                    addChannelModal.classList.remove('active');
+                }
+            });
+
+            editChannelsBtn.addEventListener('click', function () {
+                isEditing = !isEditing;
+
+                if (isEditing) {
+                    // Change button text to "Bitir"
+                    editChannelsBtn.innerHTML = '<i class="fas fa-check"></i> Bitir';
+
+                    // Show delete buttons for all channels
+                    document.querySelectorAll('.delete-channel').forEach(btn => {
+                        btn.style.display = 'block';
+                    });
+                } else {
+                    // Change button text back to "Düzenle"
+                    editChannelsBtn.innerHTML = '<i class="fas fa-edit"></i> Düzenle';
+
+                    // Hide delete buttons for all channels
+                    document.querySelectorAll('.delete-channel').forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                }
+            });
+
+            // Kanal ekle butonu
+            addChannelBtn.addEventListener('click', function () {
+                addChannel(channelNameInput.value.trim(), channelUrlInput.value.trim());
+            });
+
+            // Enter tuşu ile kanal ekleme
+            channelNameInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addChannel(channelNameInput.value.trim(), channelUrlInput.value.trim());
+                }
+            });
+
+            channelUrlInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addChannel(channelNameInput.value.trim(), channelUrlInput.value.trim());
+                }
+            });
+
+            // İlk ses seviyesini ayarla
+            radioPlayer.volume = volumeControl.value;
+
+            // Oynatma/durdurma düğmesi
+            playButton.addEventListener('click', function () {
+                console.log("Oynat/durdur butonu tıklandı");
+                if (radioPlayer.paused) {
+                    playRadio();
+                } else {
+                    pauseRadio();
+                }
+            });
+
+            // Önceki kanal düğmesi
+            prevButton.addEventListener('click', function () {
+                console.log("Önceki kanalı butonuna tıklandı");
+                currentChannelIndex--;
+                if (currentChannelIndex < 0) {
+                    currentChannelIndex = channelNames.length - 1; // Son kanala dön
+                }
+
+                changeChannel(currentChannelIndex);
+            });
+
+            // Sonraki kanal düğmesi
+            nextButton.addEventListener('click', function () {
+                console.log("Sonraki kanalı butonuna tıklandı");
+                currentChannelIndex++;
+                if (currentChannelIndex >= channelNames.length) {
+                    currentChannelIndex = 0; // Başa dön
+                }
+
+                changeChannel(currentChannelIndex);
+            });
+
+            // Klavye kontrolü ekle
+            document.addEventListener('keydown', function (event) {
+                // Space tuşu ile çal/duraklat
+                if (event.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+                    event.preventDefault();
+                    playButton.click();
+                }
+
+                // Sağ ok tuşu ile sonraki kanal
+                if (event.code === 'ArrowRight') {
+                    event.preventDefault();
+                    nextButton.click();
+                }
+
+                // Sol ok tuşu ile önceki kanal
+                if (event.code === 'ArrowLeft') {
+                    event.preventDefault();
+                    prevButton.click();
+                }
+
+                // ArrowUp/ArrowDown: Ses seviyesi
+                if (event.code === 'ArrowUp') {
+                    event.preventDefault();
+                    volumeControl.value = Math.min(parseFloat(volumeControl.value) + 0.1, 1.0);
+                    radioPlayer.volume = volumeControl.value;
+                } else if (event.code === 'ArrowDown') {
+                    event.preventDefault();
+                    volumeControl.value = Math.max(parseFloat(volumeControl.value) - 0.1, 0.0);
+                    radioPlayer.volume = volumeControl.value;
+                }
+            });
+
+            // Ses kontrolü
+            volumeControl.addEventListener('input', function () {
+                radioPlayer.volume = this.value;
+            });
+
+            // MediaSession API desteği
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', playRadio);
+                navigator.mediaSession.setActionHandler('pause', pauseRadio);
+                navigator.mediaSession.setActionHandler('previoustrack', function () {
+                    prevButton.click();
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', function () {
+                    nextButton.click();
+                });
+            }
+
+            // İlk kanalı yükle ve kanalları listele
+            loadChannels();
+            changeChannel(currentChannelIndex);
+        });
+    </script>
+</body>
+
+</html>
