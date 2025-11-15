@@ -2,13 +2,13 @@
   "name": "Namaz Vakitleri",
   "short_name": "Namaz Vakitleri",
   "start_url": "faltuan.github.io/index.html",
-  "scope": "/radyoplayer/",
+  "scope": "/radyoPlayer/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#121212",
   "icons": [
     {
-      "src": "/radyoplayer/icon-512.png",
+      "src": "/radyoPlayer/icon-512.png",
       "sizes": "1024x1024",
       "type": "image/png"
     }

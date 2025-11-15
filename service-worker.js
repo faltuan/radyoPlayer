@@ -1,7 +1,7 @@
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open("fgold-cache").then((cache) => {
-      return cache.addAll(["/radyoplayer/index.html", "/radyoplayer/icon-512.png", "/radyoplayer/manifest.json"]);
+      return cache.addAll(["/radyoPlayer/index.html", "/radyoPlayer/icon-512.png", "/radyoPlayer/manifest.json"]);
     })
   );
 });
