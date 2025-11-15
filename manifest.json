@@ -1,6 +1,6 @@
 {
-  "name": "Namaz Vakitleri",
-  "short_name": "Namaz Vakitleri",
+  "name": "Radyo Online",
+  "short_name": "Radyo Online",
   "start_url": "faltuan.github.io/index.html",
   "scope": "/radyoPlayer/",
   "display": "standalone",
